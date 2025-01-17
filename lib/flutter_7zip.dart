@@ -1,5 +1,6 @@
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 
@@ -123,6 +124,63 @@ class SZArchive {
     var a = SZArchive._(archive);
     a._pointers.add(p);
     return a;
+  }
+
+  static void extract(String archivePath, String outputPath) {
+    var archive = open(archivePath);
+    for (var i = 0; i < archive.numFiles; i++) {
+      var file = archive.getFile(i);
+      var outPath = outputPath + Platform.pathSeparator + file.name;
+      if (file.isDirectory) {
+        Directory(outPath).createSync(recursive: true);
+      } else {
+        archive.extractToFile(i, outPath);
+      }
+    }
+    archive.dispose();
+  }
+
+  static Future<void> extractIsolates(
+    String archivePath,
+    String outputPath,
+    int isolatesCount,
+  ) async {
+    var archive = open(archivePath);
+    var total = archive.numFiles;
+    var filesPerIsolate = total ~/ isolatesCount;
+    var futures = <Future>[];
+    for (var i = 0; i < isolatesCount; i++) {
+      var start = i * filesPerIsolate;
+      var end = i == isolatesCount - 1 ? total : (i + 1) * filesPerIsolate;
+      futures.add(SZArchive._extractIsolate(
+        archivePath,
+        outputPath,
+        start,
+        end,
+      ));
+    }
+    await Future.wait(futures);
+  }
+
+  static Future<void> _extractIsolate(
+    String archivePath,
+    String outputPath,
+    int start,
+    int end,
+  ) async {
+    return Isolate.run(() {
+      var archive = open(archivePath);
+      for (var i = start; i < end; i++) {
+        var file = archive.getFile(i);
+        var outPath = outputPath + Platform.pathSeparator + file.name;
+        if (file.isDirectory) {
+          Directory(outPath).createSync(recursive: true);
+        } else {
+          archive.extractToFile(i, outPath);
+        }
+      }
+      archive.dispose();
+    });
   }
 }
 
