@@ -179,11 +179,13 @@ final class ArchiveFile extends ffi.Struct {
   @ffi.Uint32()
   external int crc32;
 
-  @ffi.Uint64()
-  external int ntfsTime;
-
+  /// create
   @ffi.Uint64()
   external int cTime;
+
+  /// modify
+  @ffi.Uint64()
+  external int mTime;
 }
 
 enum ArchiveStatus {

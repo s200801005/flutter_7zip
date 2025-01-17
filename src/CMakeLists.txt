@@ -11,6 +11,8 @@ set(SZ_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/7zip/C")
 
 include_directories(${SZ_BASE_DIR})
 
+add_link_options("-Wl,--build-id=none")
+
 add_library(flutter_7zip SHARED
         "${SZ_BASE_DIR}/7zAlloc.c"
         "${SZ_BASE_DIR}/7zArcIn.c"

@@ -64,7 +64,7 @@ public:
     const size_t len = db.FileNameOffsets[index + 1] - offs;
     auto fileName = new uint16_t[len+1];
     for (auto i = 0; i < len; i++) {
-      fileName[i] = db.FileNames[offs*2 + i*2] + (db.FileNames[offs*2 + i*2 + 1] << 16);
+      fileName[i] = db.FileNames[offs*2 + i*2] + (db.FileNames[offs*2 + i*2 + 1] << 8);
     }
     fileName[len] = 0;
     archiveFile.name = fileName;
@@ -91,12 +91,12 @@ public:
     if (db.MTime.Defs != nullptr) {
       if (db.MTime.Defs[index]) {
         auto [Low, High] = db.MTime.Vals[index];
-        archiveFile.ntfsTime = Low + (static_cast<uint64_t>(High) << 32);
+        archiveFile.mTime = Low + (static_cast<uint64_t>(High) << 32);
       } else {
-        archiveFile.ntfsTime = 0;
+        archiveFile.mTime = 0;
       }
     } else {
-      archiveFile.ntfsTime = 0;
+      archiveFile.mTime = 0;
     }
 
     return archiveFile;
@@ -123,6 +123,7 @@ public:
         buffer[read] = outBuffer[i];
         read++;
       }
+      _FreeImp(&allocImp, outBuffer);
     }
     return buffer;
   }
@@ -153,6 +154,7 @@ public:
       }
       outFile.write(reinterpret_cast<const char *>(outBuffer+offset), outSizeProcessed);
       read += outSizeProcessed;
+      _FreeImp(&allocImp, outBuffer);
     }
     outFile.close();
     return kArchiveOK;

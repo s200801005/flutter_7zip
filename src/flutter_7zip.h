@@ -11,8 +11,8 @@ typedef struct {
   size_t size;
   int is_dir;
   uint32_t crc32;
-  uint64_t ntfsTime;
-  uint64_t cTime;
+  uint64_t cTime; // create
+  uint64_t mTime; // modify
 } ArchiveFile;
 
 typedef enum {

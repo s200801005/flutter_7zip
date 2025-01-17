@@ -24,7 +24,8 @@ final DynamicLibrary _dylib = () {
 /// The bindings to the native functions in [_dylib].
 final Flutter7zipBindings _bindings = Flutter7zipBindings(_dylib);
 
-final _nativeFreeDataFunc = _dylib.lookup<NativeFunction<Void Function(Pointer<Void>)>>('freeReadData');
+final _nativeFreeDataFunc =
+    _dylib.lookup<NativeFunction<Void Function(Pointer<Void>)>>('freeReadData');
 
 class SZArchive {
   final Pointer<Void> _archive;
@@ -42,20 +43,51 @@ class SZArchive {
 
   int get numFiles => _bindings.getArchiveFileCount(_archive);
 
+  DateTime _parseCTime(int timestamp) {
+    try {
+      const int secondsThreshold = 1000000000;
+      const int millisecondsThreshold = 1000000000000;
+      const int windowsEpochDiff = 116444736000000000;
+
+      if (timestamp < secondsThreshold) {
+        throw ArgumentError('Invalid timestamp: $timestamp');
+      } else if (timestamp < millisecondsThreshold) {
+        return DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+      } else if (timestamp >= millisecondsThreshold &&
+          timestamp < windowsEpochDiff) {
+        return DateTime.fromMillisecondsSinceEpoch(timestamp);
+      } else {
+        final unixMilliseconds = (timestamp - windowsEpochDiff) ~/ 10000;
+        return DateTime.fromMillisecondsSinceEpoch(unixMilliseconds);
+      }
+    } catch (e) {
+      return DateTime(0);
+    }
+  }
+
   ArchiveFile getFile(int index) {
     final cFile = _bindings.getArchiveFile(_archive, index);
     final name = cFile.name.cast<Utf16>().toDartString();
     final size = cFile.size;
     final crc32 = cFile.crc32;
     final isDirectory = cFile.is_dir == 1;
-    var time = DateTime(0);
+    DateTime? createTime;
+    DateTime? modifyTime;
     if (cFile.cTime != 0) {
-      time = DateTime.fromMillisecondsSinceEpoch(cFile.cTime * 1000);
-    } else if (cFile.ntfsTime != 0) {
-      time = DateTime.utc(1601, 1, 1).add(Duration(microseconds: cFile.ntfsTime ~/ 10));
+      createTime = _parseCTime(cFile.cTime);
+    }
+    if (cFile.mTime != 0) {
+      modifyTime = _parseCTime(cFile.mTime);
     }
     _bindings.freeArchiveFile(cFile);
-    return ArchiveFile(name, size, crc32, time, isDirectory);
+    return ArchiveFile(
+      name,
+      size,
+      crc32,
+      createTime,
+      modifyTime,
+      isDirectory,
+    );
   }
 
   Uint8List extractFile(int index) {
@@ -69,6 +101,10 @@ class SZArchive {
 
   void extractToFile(int index, String path) {
     var p = path.toNativeUtf8();
+    var file = File(path);
+    if (!file.existsSync()) {
+      file.createSync(recursive: true);
+    }
     final status = _bindings.extractArchiveToFile(_archive, index, p.cast());
     malloc.free(p);
     if (status != ArchiveStatus.kArchiveOK) {
@@ -94,8 +130,16 @@ class ArchiveFile {
   final String name;
   final int size;
   final int crc32;
-  final DateTime time;
+  final DateTime? createTime;
+  final DateTime? modifyTime;
   final bool isDirectory;
 
-  const ArchiveFile(this.name, this.size, this.crc32, this.time, this.isDirectory);
+  const ArchiveFile(
+    this.name,
+    this.size,
+    this.crc32,
+    this.createTime,
+    this.modifyTime,
+    this.isDirectory,
+  );
 }
