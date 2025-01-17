@@ -1,7 +1,7 @@
 #include "flutter_7zip.h"
 #include <7zCrc.h>
-#include "7z.h"
-#include "7zFile.h"
+#include <7z.h>
+#include <7zFile.h>
 #include <iostream>
 #include <fstream>
 
@@ -64,7 +64,7 @@ public:
     const size_t len = db.FileNameOffsets[index + 1] - offs;
     auto fileName = new uint16_t[len+1];
     for (auto i = 0; i < len; i++) {
-      fileName[i] = db.FileNames[offs + i*2] + (db.FileNames[offs + i*2 + 1] << 16);
+      fileName[i] = db.FileNames[offs*2 + i*2] + (db.FileNames[offs*2 + i*2 + 1] << 16);
     }
     fileName[len] = 0;
     archiveFile.name = fileName;

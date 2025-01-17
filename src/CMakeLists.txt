@@ -3,10 +3,31 @@
 # the plugin to fail to compile for some customers of the plugin.
 cmake_minimum_required(VERSION 3.10)
 
-project(flutter_7zip_library VERSION 0.0.1 LANGUAGES C)
+project(flutter_7zip_library VERSION 0.0.1 LANGUAGES C CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+
+set(SZ_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/7zip/C")
+
+include_directories(${SZ_BASE_DIR})
 
 add_library(flutter_7zip SHARED
-  "flutter_7zip.c"
+        "${SZ_BASE_DIR}/7zAlloc.c"
+        "${SZ_BASE_DIR}/7zArcIn.c"
+        "${SZ_BASE_DIR}/7zBuf.c"
+        "${SZ_BASE_DIR}/7zBuf2.c"
+        "${SZ_BASE_DIR}/7zCrc.c"
+        "${SZ_BASE_DIR}/7zCrcOpt.c"
+        "${SZ_BASE_DIR}/7zDec.c"
+        "${SZ_BASE_DIR}/7zFile.c"
+        "${SZ_BASE_DIR}/7zStream.c"
+        "${SZ_BASE_DIR}/Bcj2.c"
+        "${SZ_BASE_DIR}/Bra.c"
+        "${SZ_BASE_DIR}/Bra86.c"
+        "${SZ_BASE_DIR}/Delta.c"
+        "${SZ_BASE_DIR}/LzmaDec.c"
+        "${SZ_BASE_DIR}/Lzma2Dec.c"
+        "flutter_7zip.cpp"
 )
 
 set_target_properties(flutter_7zip PROPERTIES

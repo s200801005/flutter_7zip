@@ -28,6 +28,10 @@ class _MyAppState extends State<MyApp> {
 
   void _extract() async {
     final archive = SZArchive.open('test.7z');
+    var outDir = Directory("test");
+    if (outDir.existsSync()) {
+      outDir.deleteSync(recursive: true);
+    }
     for (int i=0; i<archive.numFiles; i++) {
       final file = archive.getFile(i);
       if (file.isDirectory) {
@@ -36,5 +40,6 @@ class _MyAppState extends State<MyApp> {
         archive.extractToFile(i, "test/${file.name}");
       }
     }
+    archive.dispose();
   }
 }

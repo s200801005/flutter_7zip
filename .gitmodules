@@ -1,0 +1,3 @@
+[submodule "src/7zip"]
+	path = src/7zip
+	url = https://github.com/ip7z/7zip.git
