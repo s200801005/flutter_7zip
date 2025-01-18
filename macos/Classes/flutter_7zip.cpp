@@ -16,3 +16,4 @@
 #include "../../src/7zip/C/Delta.c"
 #include "../../src/7zip/C/LzmaDec.c"
 #include "../../src/7zip/C/Lzma2Dec.c"
+#include "../../src/7zip/C/CpuArch.c"

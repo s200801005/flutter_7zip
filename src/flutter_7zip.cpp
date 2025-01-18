@@ -1,7 +1,7 @@
 #include "flutter_7zip.h"
-#include <7zCrc.h>
-#include <7z.h>
-#include <7zFile.h>
+#include "7zip/C/7zCrc.h"
+#include "7zip/C/7z.h"
+#include "7zip/C/7zFile.h"
 #include <iostream>
 #include <fstream>
 

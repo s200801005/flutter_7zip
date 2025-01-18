@@ -29,6 +29,7 @@ add_library(flutter_7zip SHARED
         "${SZ_BASE_DIR}/Delta.c"
         "${SZ_BASE_DIR}/LzmaDec.c"
         "${SZ_BASE_DIR}/Lzma2Dec.c"
+        "${SZ_BASE_DIR}/CpuArch.c"
         "flutter_7zip.cpp"
 )
 
