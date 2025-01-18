@@ -35,6 +35,7 @@ class SZArchive {
 
   final _pointers = <Pointer>[];
 
+  /// Dispose the archive and free all resources.
   void dispose() {
     _bindings.closeArchive(_archive);
     for (var p in _pointers) {
@@ -42,6 +43,7 @@ class SZArchive {
     }
   }
 
+  /// Get the number of files in the archive.
   int get numFiles => _bindings.getArchiveFileCount(_archive);
 
   DateTime _parseCTime(int timestamp) {
@@ -66,6 +68,7 @@ class SZArchive {
     }
   }
 
+  /// Get the file at the given [index].
   ArchiveFile getFile(int index) {
     final cFile = _bindings.getArchiveFile(_archive, index);
     final name = cFile.name.cast<Utf16>().toDartString();
@@ -91,6 +94,7 @@ class SZArchive {
     );
   }
 
+  /// Extract the file at the given [index] to a [Uint8List].
   Uint8List extractFile(int index) {
     var archive = getFile(index);
     var data = _bindings.readArchiveFile(_archive, index).cast<Uint8>();
@@ -100,6 +104,7 @@ class SZArchive {
     return data.asTypedList(archive.size, finalizer: _nativeFreeDataFunc);
   }
 
+  /// Extract the file at the given [index] to a file at the given [path].
   void extractToFile(int index, String path) {
     var p = path.toNativeUtf8();
     var file = File(path);
@@ -113,6 +118,7 @@ class SZArchive {
     }
   }
 
+  /// Open an archive at the given [path].
   static SZArchive open(String path) {
     var p = path.toNativeUtf8();
     final archive = _bindings.openArchive(p.cast());
@@ -126,6 +132,9 @@ class SZArchive {
     return a;
   }
 
+  /// Extract the archive at the given [archivePath] to the given [outputPath].
+  /// 
+  /// The method is synchronous and will block the main thread.
   static void extract(String archivePath, String outputPath) {
     var archive = open(archivePath);
     for (var i = 0; i < archive.numFiles; i++) {
@@ -140,6 +149,9 @@ class SZArchive {
     archive.dispose();
   }
 
+  /// Extract the archive at the given [archivePath] to the given [outputPath] with [isolatesCount] isolates.
+  /// 
+  /// The method is asynchronous and will not block the main thread.
   static Future<void> extractIsolates(
     String archivePath,
     String outputPath,
@@ -185,13 +197,20 @@ class SZArchive {
 }
 
 class ArchiveFile {
+  /// Relative path to the archive.
   final String name;
+  /// The size of the file.
   final int size;
+  /// The CRC32 checksum of the file.
   final int crc32;
+  /// The creation time of the file.
   final DateTime? createTime;
+  /// The modification time of the file.
   final DateTime? modifyTime;
+  /// Whether the file is a directory.
   final bool isDirectory;
 
+  /// A file in an archive.
   const ArchiveFile(
     this.name,
     this.size,
